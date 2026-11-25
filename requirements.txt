@@ -1,0 +1,7 @@
+# Aggregated dependencies for the whole framework.
+# (Per-component pins also live in each subfolder's requirements.txt)
+Flask==3.0.3
+PyJWT==2.9.0
+bcrypt==4.2.0
+requests==2.32.3
+gunicorn==23.0.0

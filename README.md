@@ -17,7 +17,9 @@ OWASP API Security Top 10 authentication/authorization flaws, then hardens it.
 | `hardened_api/` | Remediated, securely configured build (JWT, bcrypt, RBAC, rate limiting) |
 | `security_scripts/` | Custom Python tools that test for BOLA, BFLA, and Broken Authentication |
 | `report/PENTEST_REPORT.md` | Full penetration test report with findings, PoCs, and remediation verification |
+| `report/assessment_evidence.txt` | Captured console output from live runs against both builds |
 | `deployment/` | Docker Compose for cloud-ready deployment of the hardened build |
+| `.github/workflows/security-suite.yml` | CI that reproduces findings on the vulnerable build and fails if the hardened build ever regresses |
 
 ## Vulnerabilities assessed
 
@@ -35,7 +37,7 @@ OWASP API Security Top 10 authentication/authorization flaws, then hardens it.
 ```bash
 # 1. Set up
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r hardened_api/requirements.txt -r security_scripts/requirements.txt
+pip install -r requirements.txt
 
 # 2. Reproduce the findings against the vulnerable target
 python vulnerable_api/app.py &            # starts on http://127.0.0.1:5000

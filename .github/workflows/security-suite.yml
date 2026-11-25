@@ -1,0 +1,50 @@
+name: Security Suite
+
+# Runs the FitTrack authz/authn assessment on every push / PR.
+# Gate 1: the vulnerable build MUST reproduce findings (proves the suite works).
+# Gate 2: the hardened build MUST report ZERO findings (proves the fixes hold).
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Gate 1 — vulnerable build must reproduce findings
+        run: |
+          python vulnerable_api/app.py > /tmp/vuln.log 2>&1 &
+          sleep 3
+          OUT=$(cd security_scripts && TARGET_URL=http://127.0.0.1:5000 python run_all.py)
+          echo "$OUT"
+          if echo "$OUT" | grep -q "TOTAL FINDINGS: 0"; then
+            echo "::error::Expected findings on the vulnerable build but got none."
+            exit 1
+          fi
+          echo "Vulnerable build reproduced findings as expected."
+
+      - name: Gate 2 — hardened build must report zero findings
+        env:
+          JWT_SECRET: ci-ephemeral-secret-not-for-production
+        run: |
+          python hardened_api/app.py > /tmp/hard.log 2>&1 &
+          sleep 3
+          OUT=$(cd security_scripts && TARGET_URL=http://127.0.0.1:5000 python run_all.py)
+          echo "$OUT"
+          if ! echo "$OUT" | grep -q "TOTAL FINDINGS: 0"; then
+            echo "::error::Hardened build reported findings — a regression was introduced."
+            exit 1
+          fi
+          echo "Hardened build is clean: 0 findings."

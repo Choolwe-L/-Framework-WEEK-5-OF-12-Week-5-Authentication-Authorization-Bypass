@@ -1,0 +1,73 @@
+FitTrack API — Captured Assessment Evidence
+Generated: 2026-11-25 07:26 UTC
+============================================================
+
+### RUN 1 — VULNERABLE build (target) ###
+FitTrack API Security Assessment Suite
+Target: http://127.0.0.1:5000
+  [INFO]      Attempting to register a user with the weak password '123'
+  [VULNERABLE] Trivial password '123' was accepted -> no password policy
+  [INFO]      Comparing login errors for a known vs unknown username
+  [VULNERABLE] Responses differ (unknown=404, known-bad-pw=401) -> usernames can be enumerated
+  [INFO]      Firing 12 rapid failed logins for 'admin' to check for lockout/rate-limit
+  [VULNERABLE] No throttling after 12 failures -> brute-force / credential-stuffing possible
+  [INFO]      PoC password spray against 'admin' with a small common-password list
+  [VULNERABLE] CRACKED: admin/admin -> token issued, role=admin
+
+=== API1 - Broken Object Level Authorization (BOLA / IDOR) ===
+  Target: http://127.0.0.1:5000
+  [INFO]      Authenticated as bob (role=user); bob's own id is expected to be 2
+  [INFO]      Reading own workouts (id=2) -> HTTP 200 (expected 200)
+  [VULNERABLE] BOLA: bob read user 1's workouts -> [{'date': '2026-11-01', 'distance_km': 5.2, 'hr_avg': 148, 'notes': 'Morning 5k', 'type': 'Run'}]
+  [VULNERABLE] BOLA: bob read user 3's workouts -> [{'date': '2026-11-03', 'distance_km': 1.5, 'hr_avg': 120, 'notes': 'Pool session', 'type': 'Swim'}]
+
+  Summary: 2 BOLA finding(s).
+    - Horizontal access to user 1's workout objects
+    - Horizontal access to user 3's workout objects
+
+=== API5 - Broken Function Level Authorization (BFLA) ===
+  Target: http://127.0.0.1:5000
+  [INFO]      Authenticated as regular user bob (role=user)
+  [VULNERABLE] Regular user listed ALL accounts via /api/admin/users (4 users exposed)
+  [VULNERABLE] Forged base64 'role=admin' token accepted -> unsigned-token escalation
+  [VULNERABLE] Regular user reached destructive DELETE /api/admin/users/9999 (HTTP 200)
+
+  Summary: 3 BFLA finding(s).
+    - Regular user can reach admin user-listing endpoint
+    - Privilege escalation via forged unsigned token
+    - Regular user can invoke destructive admin DELETE
+
+TOTAL FINDINGS: 9
+
+### RUN 2 — HARDENED build (remediated) ###
+[1]   Terminated              python vulnerable_api/app.py > /tmp/v.log 2>&1
+FitTrack API Security Assessment Suite
+Target: http://127.0.0.1:5000
+  [INFO]      Attempting to register a user with the weak password '123'
+  [SECURE]    Weak password rejected (HTTP 400)
+  [INFO]      Comparing login errors for a known vs unknown username
+  [SECURE]    Uniform response for both cases (HTTP 401) -> no enumeration
+  [INFO]      Firing 12 rapid failed logins for 'admin' to check for lockout/rate-limit
+  [SECURE]    Account throttled / locked out (HTTP 429 observed) -> brute-force mitigated
+  [INFO]      PoC password spray against 'admin' with a small common-password list
+  [SECURE]    Spray list did not crack the admin account
+
+=== API1 - Broken Object Level Authorization (BOLA / IDOR) ===
+  Target: http://127.0.0.1:5000
+  [INFO]      Authenticated as bob (role=user); bob's own id is expected to be 2
+  [INFO]      Reading own workouts (id=2) -> HTTP 200 (expected 200)
+  [SECURE]    Access to user 1 denied (HTTP 403) -> ownership enforced
+  [SECURE]    Access to user 3 denied (HTTP 403) -> ownership enforced
+
+  Summary: 0 BOLA finding(s).
+
+=== API5 - Broken Function Level Authorization (BFLA) ===
+  Target: http://127.0.0.1:5000
+  [INFO]      Authenticated as regular user bob (role=user)
+  [SECURE]    Admin listing denied for regular user (HTTP 403) -> function-level auth enforced
+  [SECURE]    Forged token rejected (HTTP 401) -> tokens are signed/verified
+  [SECURE]    Destructive admin DELETE denied for regular user (HTTP 403)
+
+  Summary: 0 BFLA finding(s).
+
+TOTAL FINDINGS: 0
