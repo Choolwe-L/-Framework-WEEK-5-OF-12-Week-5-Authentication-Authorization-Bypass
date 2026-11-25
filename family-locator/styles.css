@@ -1,0 +1,125 @@
+/* Family Locator — warm, trustworthy, consent-first.
+   Layout: full-screen map with a floating roster panel; calm onboarding card. */
+:root {
+  --bg: #f4f1ec;
+  --surface: #ffffff;
+  --ink: #23201c;
+  --muted: #6f685d;
+  --line: #e4ddd1;
+  --accent: #2f7d5b;      /* field green */
+  --accent-ink: #1d5a3e;
+  --warn: #b4532a;        /* terracotta */
+  --live: #2f7d5b;
+  --shadow: 0 6px 24px rgba(35, 32, 28, .12);
+  --radius: 14px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17150f; --surface: #221f18; --ink: #efe9dd;
+    --muted: #a69c8a; --line: #332e23; --accent: #57b487; --accent-ink: #8fd3af;
+    --warn: #e08a5f; --shadow: 0 6px 24px rgba(0,0,0,.5); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17150f; --surface: #221f18; --ink: #efe9dd;
+  --muted: #a69c8a; --line: #332e23; --accent: #57b487; --accent-ink: #8fd3af;
+  --warn: #e08a5f; --shadow: 0 6px 24px rgba(0,0,0,.5); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+.screen { min-height: 100%; }
+
+/* ---------- Onboarding ---------- */
+#onboarding {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+         max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.onboarding-card { width: 100%; max-width: 420px; padding: 26px 24px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 { margin: 0; font-size: 1.45rem; letter-spacing: -.01em; }
+.brand-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6fd3a2, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.brand-dot.small { width: 11px; height: 11px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.tagline { color: var(--muted); margin: 10px 0 20px; line-height: 1.45; }
+
+form label { display: block; font-size: .82rem; font-weight: 600; margin: 14px 0 6px; }
+input[type=text] {
+  width: 100%; padding: 11px 12px; font-size: 1rem; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+}
+input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row { display: flex; gap: 8px; }
+.row input { flex: 1; min-width: 0; }
+.hint { font-size: .78rem; color: var(--muted); margin: 7px 0 0; line-height: 1.4; }
+.consent { display: flex; gap: 10px; align-items: flex-start; margin: 18px 0 20px;
+  font-size: .82rem; color: var(--muted); line-height: 1.4; }
+.consent input { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--accent); }
+.consent strong { color: var(--ink); }
+
+button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid transparent; }
+.primary, .ghost, .pill { padding: 11px 14px; font-weight: 600; }
+.primary { width: 100%; background: var(--accent); color: #fff; font-size: 1rem; }
+.primary:hover { background: var(--accent-ink); }
+.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.ghost:hover { background: var(--bg); }
+.ghost.small { padding: 6px 10px; font-size: .8rem; }
+.fineprint { font-size: .72rem; color: var(--muted); margin: 16px 0 0; }
+.credit { font-size: .74rem; color: var(--muted); text-align: center; max-width: 420px; line-height: 1.45; }
+
+/* ---------- Map app ---------- */
+#app { display: flex; flex-direction: column; height: 100%; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left));
+  background: var(--surface); border-bottom: 1px solid var(--line); z-index: 500;
+}
+.topbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.topbar-left strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-right { display: flex; gap: 8px; }
+.pill { border: 1px solid var(--line); background: var(--bg); color: var(--ink); white-space: nowrap; }
+.pill.off { }
+.pill.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+#map { flex: 1; width: 100%; background: var(--line); z-index: 1; }
+
+.roster {
+  position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(300px, calc(100% - 24px)); max-height: 42vh; overflow: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 12px 14px; z-index: 500;
+}
+.roster-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.roster-head span { font-weight: 700; font-size: .9rem; }
+.roster ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.roster li { display: flex; align-items: center; gap: 10px; padding: 7px 6px; border-radius: 8px; }
+.roster li:hover { background: var(--bg); cursor: pointer; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.who { display: flex; flex-direction: column; min-width: 0; }
+.who b { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who small { color: var(--muted); font-size: .72rem; }
+.roster-foot { color: var(--muted); font-size: .76rem; margin: 10px 0 0; line-height: 1.4; border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* Map marker labels */
+.me-marker, .peer-marker { display: grid; place-items: center; }
+.marker-pin {
+  width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35);
+}
+.marker-pin span { transform: rotate(45deg); font-size: 11px; font-weight: 700; color: #fff; }
+.leaflet-popup-content { font: inherit; }
+
+@media (max-width: 480px) {
+  .roster { max-height: 38vh; }
+}
