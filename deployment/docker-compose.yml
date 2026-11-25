@@ -1,0 +1,16 @@
+# Basic cloud-ready compose for the HARDENED build.
+# Secret is injected from the host environment, not baked into the image.
+services:
+  fittrack-api:
+    build: ../hardened_api
+    ports:
+      - "5000:5000"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in your shell or .env}
+      - TOKEN_TTL_MINUTES=30
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
